@@ -16,19 +16,22 @@
 //! ## Define structs that represent metrics using the derive macro.
 //!
 //! ```no_run
-//! use telegraf::*;
+//! use tokio_telegraf::*;
 //!
-//! let mut client = Client::new("tcp://localhost:8094").unwrap();
+//! #[tokio::main]
+//! async fn main() {
+//!     let mut client = Client::new("tcp://localhost:8094").await.unwrap();
 //!
-//! #[derive(Metric)]
-//! struct MyMetric {
-//!     field1: i32,
-//!     #[telegraf(tag)]
-//!     tag1: String,
+//!     #[derive(Metric)]
+//!     struct MyMetric {
+//!         field1: i32,
+//!         #[telegraf(tag)]
+//!         tag1: String,
+//!     }
+//!
+//!     let point = MyMetric { field1: 1, tag1: "tag".to_owned() };
+//!     client.write(&point).await;
 //! }
-//!
-//! let point = MyMetric { field1: 1, tag1: "tag".to_owned() };
-//! client.write(&point);
 //! ```
 //!
 //! As with any Telegraf point, tags are optional but at least one field
@@ -38,7 +41,7 @@
 //! override this via derive attributes:
 //!
 //! ```
-//! use telegraf::*;
+//! use tokio_telegraf::*;
 //!
 //! #[derive(Metric)]
 //! #[measurement = "custom_name"]
@@ -50,7 +53,7 @@
 //! Timestamps are optional and can be set via the `timestamp` attribute:
 //!
 //! ```rust
-//! use telegraf::*;
+//! use tokio_telegraf::*;
 //!
 //! #[derive(Metric)]
 //! struct MyMetric {
@@ -63,12 +66,15 @@
 //! ## Use the [crate::point] macro to do ad-hoc metrics.
 //!
 //! ```no_run
-//! use telegraf::*;
+//! use tokio_telegraf::*;
 //!
-//! let mut client = Client::new("tcp://localhost:8094").unwrap();
+//! #[tokio::main]
+//! async fn main() {
+//!     let mut client = Client::new("tcp://localhost:8094").await.unwrap();
 //!
-//! let p = point!("measurement", ("tag1", "tag1Val"), ("field1", "field1Val"));
-//! client.write_point(&p);
+//!     let p = point!("measurement", ("tag1", "tag1Val"), ("field1", "field1Val"));
+//!     client.write_point(&p).await;
+//! }
 //! ```
 //!
 //! The macro syntax is the following format:
@@ -82,24 +88,27 @@
 //! ## Manual [crate::Point] initialization.
 //!
 //! ```no_run
-//! use telegraf::{Client, Point};
+//! use tokio_telegraf::{Client, Point};
 //!
-//! let mut c = Client::new("tcp://localhost:8094").unwrap();
+//! #[tokio::main]
+//! async fn main() {
+//!     let mut c = Client::new("tcp://localhost:8094").await.unwrap();
 //!
-//! let p = Point::new(
-//!     String::from("measurement"),
-//!     vec![
-//!         (String::from("tag1"), String::from("tag1value"))
-//!     ],
-//!     vec![
-//!         (String::from("field1"), Box::new(10)),
-//!         (String::from("field2"), Box::new(20.5)),
-//!         (String::from("field3"), Box::new("anything!"))
-//!     ],
-//!     Some(100),
-//! );
+//!     let p = Point::new(
+//!         String::from("measurement"),
+//!         vec![
+//!             (String::from("tag1"), String::from("tag1value"))
+//!         ],
+//!         vec![
+//!             (String::from("field1"), Box::new(10)),
+//!             (String::from("field2"), Box::new(20.5)),
+//!             (String::from("field3"), Box::new("anything!"))
+//!         ],
+//!         Some(100),
+//!     );
 //!
-//! c.write_point(&p);
+//!     c.write_point(&p).await;
+//! }
 //! ```
 //!
 //! ### Field Data
@@ -107,7 +116,7 @@
 //! Any attribute that will be the value of a field must implement the `IntoFieldData` trait provided by this library.
 //!
 //! ```
-//! use telegraf::FieldData;
+//! use tokio_telegraf::FieldData;
 //!
 //! pub trait IntoFieldData {
 //!     fn into_field_data(&self) -> FieldData;
@@ -122,7 +131,7 @@
 //! Timestamps are specified in nanosecond-precision Unix time, therefore `u64` must implement the `From<T>` trait for the field type, if the implementation is not already present:
 //!
 //! ```rust
-//! use telegraf::*;
+//! use tokio_telegraf::*;
 //!
 //! #[derive(Copy, Clone)]
 //! struct MyType {
@@ -151,13 +160,16 @@ pub mod protocol;
 
 use std::{
     fmt,
-    io::{self, Error, Write},
-    net::{Shutdown, SocketAddr, TcpStream, UdpSocket},
+    io::{self, Error},
+    net::{Shutdown, SocketAddr},
 };
 
 #[cfg(target_family = "unix")]
-use std::os::unix::net::{UnixDatagram, UnixStream};
-
+use tokio::net::{UnixDatagram, UnixStream};
+use tokio::{
+    io::AsyncWriteExt,
+    net::{TcpStream, UdpSocket},
+};
 use url::Url;
 
 use protocol::*;
@@ -180,7 +192,7 @@ pub type TelegrafResult = Result<(), TelegrafError>;
 /// # Examples
 ///
 /// ```
-/// use telegraf::*;
+/// use tokio_telegraf::*;
 ///
 /// #[derive(Metric)]
 /// #[measurement = "my_metric"]
@@ -297,14 +309,14 @@ impl Point {
 impl Client {
     /// Creates a new Client. Determines socket protocol from
     /// provided URL.
-    pub fn new(conn_url: &str) -> Result<Self, TelegrafError> {
-        let conn = Connector::new(conn_url)?;
+    pub async fn new(conn_url: &str) -> Result<Self, TelegrafError> {
+        let conn = Connector::new(conn_url).await?;
         Ok(Self { conn })
     }
 
     /// Writes the protocol representation of a point
     /// to the established connection.
-    pub fn write_point(&mut self, pt: &Point) -> TelegrafResult {
+    pub async fn write_point(&mut self, pt: &Point) -> TelegrafResult {
         if pt.fields.is_empty() {
             return Err(TelegrafError::BadProtocol(
                 "points must have at least 1 field".to_owned(),
@@ -313,13 +325,13 @@ impl Client {
 
         let lp = pt.to_lp();
         let bytes = lp.to_str().as_bytes();
-        self.write_to_conn(bytes)
+        self.write_to_conn(bytes).await
     }
 
     /// Joins multiple points together and writes them in a batch. Useful
     /// if you want to write lots of points but not overwhelm local service or
     /// you want to ensure all points have the exact same timestamp.
-    pub fn write_points(&mut self, pts: &[Point]) -> TelegrafResult {
+    pub async fn write_points(&mut self, pts: &[Point]) -> TelegrafResult {
         if pts.iter().any(|p| p.fields.is_empty()) {
             return Err(TelegrafError::BadProtocol(
                 "points must have at least 1 field".to_owned(),
@@ -331,34 +343,34 @@ impl Client {
             .map(|p| p.to_lp().to_str().to_owned())
             .collect::<Vec<String>>()
             .join("");
-        self.write_to_conn(lp.as_bytes())
+        self.write_to_conn(lp.as_bytes()).await
     }
 
     /// Convenience wrapper around writing points for types
     /// that implement [crate::Metric].
-    pub fn write<M: Metric>(&mut self, metric: &M) -> TelegrafResult {
+    pub async fn write<M: Metric>(&mut self, metric: &M) -> TelegrafResult {
         let pt = metric.to_point();
-        self.write_point(&pt)
+        self.write_point(&pt).await
     }
 
     /// Closes and cleans up socket connection.
-    pub fn close(&self) -> io::Result<()> {
-        self.conn.close()
+    pub async fn close(&mut self) -> io::Result<()> {
+        self.conn.close().await
     }
 
     /// Writes byte array to internal outgoing socket.
-    pub fn write_to_conn(&mut self, data: &[u8]) -> TelegrafResult {
-        self.conn.write(data).map(|_| Ok(()))?
+    pub async fn write_to_conn(&mut self, data: &[u8]) -> TelegrafResult {
+        self.conn.write(data).await.map(|_| Ok(()))?
     }
 }
 
 impl Connector {
-    fn close(&self) -> io::Result<()> {
+    async fn close(&mut self) -> io::Result<()> {
         use Connector::*;
         match self {
-            Tcp(c) => c.shutdown(Shutdown::Both),
+            Tcp(c) => c.shutdown().await,
             #[cfg(target_family = "unix")]
-            Unix(c) => c.shutdown(Shutdown::Both),
+            Unix(c) => c.shutdown().await,
             #[cfg(target_family = "unix")]
             Unixgram(c) => c.shutdown(Shutdown::Both),
             // Udp socket doesnt have a graceful close.
@@ -366,39 +378,40 @@ impl Connector {
         }
     }
 
-    fn write(&mut self, buf: &[u8]) -> io::Result<()> {
+    async fn write(&mut self, buf: &[u8]) -> io::Result<()> {
         let r = match self {
-            Self::Tcp(c) => c.write(buf),
-            Self::Udp(c) => c.send(buf),
+            Self::Tcp(c) => c.write(buf).await,
+            Self::Udp(c) => c.send(buf).await,
             #[cfg(target_family = "unix")]
-            Self::Unix(c) => c.write(buf),
+            Self::Unix(c) => c.write(buf).await,
             #[cfg(target_family = "unix")]
-            Self::Unixgram(c) => c.send(buf),
+            Self::Unixgram(c) => c.send(buf).await,
         };
         r.map(|_| Ok(()))?
     }
 
-    fn new(url: &str) -> Result<Self, TelegrafError> {
+    async fn new(url: &str) -> Result<Self, TelegrafError> {
         match Url::parse(url) {
             Ok(u) => {
                 let scheme = u.scheme();
                 match scheme {
                     "tcp" => {
                         let addr = u.socket_addrs(|| None)?;
-                        let conn = TcpStream::connect(&*addr)?;
+                        let conn = TcpStream::connect(&*addr).await?;
                         Ok(Connector::Tcp(conn))
                     }
                     "udp" => {
                         let addr = u.socket_addrs(|| None)?;
-                        let conn = UdpSocket::bind(&[SocketAddr::from(([0, 0, 0, 0], 0))][..])?;
-                        conn.connect(&*addr)?;
-                        conn.set_nonblocking(true)?;
+                        let conn =
+                            UdpSocket::bind(&[SocketAddr::from(([0, 0, 0, 0], 0))][..]).await?;
+                        conn.connect(&*addr).await?;
+                        // conn.set_nonblocking(true)?;
                         Ok(Connector::Udp(conn))
                     }
                     #[cfg(target_family = "unix")]
                     "unix" => {
                         let path = u.path();
-                        let conn = UnixStream::connect(path)?;
+                        let conn = UnixStream::connect(path).await?;
                         Ok(Connector::Unix(conn))
                     }
                     #[cfg(target_family = "unix")]
@@ -406,7 +419,7 @@ impl Connector {
                         let path = u.path();
                         let conn = UnixDatagram::unbound()?;
                         conn.connect(path)?;
-                        conn.set_nonblocking(true)?;
+                        // conn.set_nonblocking(true)?;
                         Ok(Connector::Unixgram(conn))
                     }
                     _ => Err(TelegrafError::BadProtocol(format!(

@@ -19,7 +19,7 @@
 /// Creates a point with one tag and two fields:
 ///
 /// ```
-/// use telegraf::point;
+/// use tokio_telegraf::point;
 ///
 /// let p = point!("measure", ("t1", "t1v"), ("f1", "f1v") ("f2", "f2v"));
 /// ```
@@ -27,7 +27,7 @@
 /// Creates a point with no tags and one field:
 ///
 /// ```
-/// use telegraf::point;
+/// use tokio_telegraf::point;
 ///
 /// let p = point!("measure", ("f1", "f1v"));
 /// ```
@@ -35,7 +35,7 @@
 /// Creates a point with no tags, one field and a custom timestamp:
 ///
 /// ```
-/// use telegraf::point;
+/// use tokio_telegraf::point;
 ///
 /// let p = point!("measure", ("f1", "f1v"); 100);
 /// ```

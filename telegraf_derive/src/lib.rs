@@ -7,7 +7,7 @@ use syn::{
 };
 
 fn krate() -> TStream2 {
-    quote!(::telegraf)
+    quote!(::tokio_telegraf)
 }
 
 #[proc_macro_derive(Metric, attributes(measurement, telegraf))]

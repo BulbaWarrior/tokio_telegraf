@@ -1,6 +1,6 @@
-use telegraf::*;
+use tokio_telegraf::*;
 
-#[derive(Metric)]
+#[derive(metric)]
 struct NoTags {
     i: i32,
 }
