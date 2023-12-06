@@ -1,15 +1,17 @@
-# Telegraf-rust
+# tokio-telegraf
 
-[![Telegraf crate](https://img.shields.io/crates/v/telegraf.svg)](https://crates.io/crates/telegraf)
-[![Telegraf crate downloads](https://img.shields.io/crates/d/telegraf)](https://crates.io/crates/telegraf)
-[![Telegraf documentation](https://docs.rs/telegraf/badge.svg)](https://docs.rs/telegraf)
+[![tokio-telegraf crate](https://img.shields.io/crates/v/telegraf.svg)](https://crates.io/crates/tokio-telegraf)
+[![tokio-telegraf crate downloads](https://img.shields.io/crates/d/telegraf)](https://crates.io/crates/tokio-telegraf)
+[![tokio-telegraf documentation](https://docs.rs/telegraf/badge.svg)](https://docs.rs/tokio-telegraf)
 
-Telegraf-rust is a lightweight client library for general metrics writing using Telegraf. Telegraf is a micro-service provided
+Tokio-telegraf is a lightweight client library for general metrics writing using Telegraf. Telegraf is a micro-service provided
 by InfluxData for making metrics reporting easy for distributed services - see their [docs](https://docs.influxdata.com/telegraf/v1.13/introduction/installation/) for more information.
+
+This library is a fork of [maxmindlin/telegraf-rust](https://github.com/maxmindlin/telegraf-rust) to allow usage with asyncio, under the [Tokio](https://tokio.rs) ecosystem.
 
 This library does not provide querying or other InfluxDB client-library features. This is meant to be lightweight and simple for services to report metrics.
 
-Telegraf-rust supports all socket connection types, such as UDS (unix domain socket):
+Tokio-telegraf supports all socket connection types, such as UDS (unix domain socket):
 - TCP (`tcp://`)
 - UDP (`udp://`)
 - UDS Stream (`unix://`)
@@ -33,7 +35,7 @@ Using this library assumes you have a socket listener setup in your Telegraf con
   service_address = "tcp://localhost:8094"
 ```
 
-All usage will start by creating a socket connection via a `Client`. This supports multiple connection protocols - which one you use will be determined by how your Telegraf `input.socket_listener` configuration is setup. 
+All usage will start by creating a socket connection via a `Client`. This supports multiple connection protocols - which one you use will be determined by how your Telegraf `input.socket_listener` configuration is setup.
 
 Once a client is setup there are multiple different ways to write points:
 
@@ -42,7 +44,7 @@ Once a client is setup there are multiple different ways to write points:
 ```rust
 use telegraf::*;
 
-let mut client = Client::new("tcp://localhost:8094").unwrap();
+let mut client = Client::new("tcp://localhost:8094").await.unwrap();
 
 #[derive(Metric)]
 struct MyMetric {
@@ -52,7 +54,7 @@ struct MyMetric {
 }
 
 let point = MyMetric { field1: 1, tag1: "tag" };
-client.write(&point);
+client.write(&point).await;
 ```
 
 By default the measurement name will be the same as the struct. You can override this via derive attributes:
@@ -87,10 +89,10 @@ struct MyMetric {
 ```rust
 use telegraf::*;
 
-let mut client = Client::new("tcp://localhost:8094").unwrap();
+let mut client = Client::new("tcp://localhost:8094").await.unwrap();
 
 let p = point!("measurement", ("tag1", "tag1Val"), ("field1", "val") ("field2", 10); 100);
-client.write_point(&p);
+client.write_point(&p).await;
 ```
 
 The macro syntax is the following format:
@@ -106,7 +108,7 @@ Measurement name, tag set, and field set are comma separated. Tag and field tupl
 ```rust
 use telegraf::{Client, Point};
 
-let c = Client::new("tcp://localhost:8094").unwrap();
+let c = Client::new("tcp://localhost:8094").await.unwrap();
 
 let p = Point::new(
     String::from("measurement"),
@@ -121,7 +123,7 @@ let p = Point::new(
     Some(100),
 );
 
-c.write_point(p)
+c.write_point(p).await
 ```
 
 ### Field Data
