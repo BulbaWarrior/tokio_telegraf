@@ -1,5 +1,7 @@
 # tokio-telegraf
 
+## Under development - not yet published to crates.io
+
 [![tokio-telegraf crate](https://img.shields.io/crates/v/tokio-telegraf.svg)](https://crates.io/crates/tokio-telegraf)
 [![tokio-telegraf crate downloads](https://img.shields.io/crates/d/tokio-telegraf)](https://crates.io/crates/tokio-telegraf)
 [![tokio-telegraf documentation](https://docs.rs/tokio-telegraf/badge.svg)](https://docs.rs/tokio-telegraf)
@@ -12,10 +14,16 @@ by InfluxData for making metrics reporting easy for distributed services - see t
 This library does not provide querying or other InfluxDB client-library features. This is meant to be lightweight and simple for services to report metrics.
 
 Tokio-telegraf supports all socket connection types, such as UDS (unix domain socket):
+
 - TCP (`tcp://`)
 - UDP (`udp://`)
 - UDS Stream (`unix://`)
 - UDS Datagram (`unixgram://`)
+
+# Differences with [maxmindlin/telegraf-rust](https://github.com/maxmindlin/telegraf-rust)
+* Asyncio only operations, based on the [Tokio](https://tokio.rs) ecosystem.
+* **TBD** - Fewer allocations, by reducing the usage of `Box` and by handling data-points
+  lifetimes.
 
 # Install
 
@@ -23,7 +31,7 @@ Add it to your Cargo.toml:
 
 ```toml
 [dependencies]
-telegraf = "*"
+tokio-telegraf = "*"
 ```
 
 # How to use
@@ -42,7 +50,7 @@ Once a client is setup there are multiple different ways to write points:
 ## Define structs that represent metrics using the derive macro
 
 ```rust
-use telegraf::*;
+use tokio_telegraf::*;
 
 let mut client = Client::new("tcp://localhost:8094").await.unwrap();
 
@@ -60,7 +68,7 @@ client.write(&point).await;
 By default the measurement name will be the same as the struct. You can override this via derive attributes:
 
 ```rust
-use telegraf::*;
+use tokio_telegraf::*;
 
 #[derive(Metric)]
 #[measurement = "custom_name"]
@@ -74,7 +82,7 @@ As with any Telegraf point, tags are optional but at least one field is required
 Timestamps are optional and can be set via the `timestamp` attribute:
 
 ```rust
-use telegraf::*;
+use tokio_telegraf::*;
 
 #[derive(Metric)]
 struct MyMetric {
@@ -87,7 +95,7 @@ struct MyMetric {
 ## Use the `point` macro to do ad-hoc metrics
 
 ```rust
-use telegraf::*;
+use tokio_telegraf::*;
 
 let mut client = Client::new("tcp://localhost:8094").await.unwrap();
 
@@ -106,7 +114,7 @@ Measurement name, tag set, and field set are comma separated. Tag and field tupl
 ## Manual `Point` initialization
 
 ```rust
-use telegraf::{Client, Point};
+use tokio_telegraf::{Client, Point};
 
 let c = Client::new("tcp://localhost:8094").await.unwrap();
 
@@ -144,7 +152,7 @@ Timestamps are optional. If not present, the Telegraf daemon will set the timest
 Timestamps are specified in nanosecond-precision Unix time, therefore `u64` must implement the `From<T>` trait for the field type, if the implementation is not already present:
 
 ```rust
-use telegraf::*;
+use tokio_telegraf::*;
 
 #[derive(Copy, Clone)]
 struct MyType {
