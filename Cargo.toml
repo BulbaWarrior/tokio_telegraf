@@ -6,7 +6,7 @@ authors = [
     "Max Mindlin <maxmindlin@gmail.com>",
 ]
 edition = "2021"
-repository = "https://github.com/crisidev/tokio-telegraf"
+repository = "https://github.com/crisidev/tokio_telegraf"
 description = "Minimal async rust wrapper for the telegraf/influxdb protocol, based on Tokio"
 license = "MIT"
 readme = "README.md"
@@ -18,5 +18,5 @@ members = ["tests", "tokio_telegraf_derive"]
 
 [dependencies]
 tokio_telegraf_derive = { path = "./tokio_telegraf_derive" }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["net", "io-util", "rt-multi-thread", "macros"] }
 url = "2.5"

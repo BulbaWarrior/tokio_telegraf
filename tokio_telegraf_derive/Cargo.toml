@@ -5,15 +5,15 @@ authors = [
     "Matteo Bigoi <bigo@crisidev.org>",
     "Max Mindlin <maxmindlin@gmail.com>",
 ]
-edition = "2018"
+edition = "2021"
 license = "MIT"
-repository = "https://github.com/maxmindlin/telegraf-rust"
-description = "Derive macros for the telegraf-rust library"
+repository = "https://github.com/crisidev/tokio_telegraf"
+description = "Derive macros for the tokio_telegraf library"
 
 [lib]
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1.0.28"
-quote = "1.0.9"
-syn = { version = "1.0.74", features = ["extra-traits", "full"] }
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "1.0", features = ["extra-traits", "full"] }
