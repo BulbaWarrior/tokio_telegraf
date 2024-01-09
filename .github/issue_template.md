@@ -2,7 +2,7 @@
 Describe your issue here.
 
 ### Your environment
-* version of Telegraf-rust
+* version of tokio-telegraf
 * version of Rust
 
 ### Steps to reproduce
