@@ -1,7 +1,10 @@
 [package]
-name = "tokio-telegraf"
+name = "tokio_telegraf"
 version = "0.1.0"
-authors = ["Matteo Bigoi <bigo@crisidev.org>"]
+authors = [
+    "Matteo Bigoi <bigo@crisidev.org>",
+    "Max Mindlin <maxmindlin@gmail.com>",
+]
 edition = "2021"
 repository = "https://github.com/crisidev/tokio-telegraf"
 description = "Minimal async rust wrapper for the telegraf/influxdb protocol, based on Tokio"
@@ -11,9 +14,9 @@ keywords = ["telegraf", "influxdb", "metrics", "tokio", "async"]
 categories = ["asynchronous", "database"]
 
 [workspace]
-members = ["tests", "telegraf_derive"]
+members = ["tests", "tokio_telegraf_derive"]
 
 [dependencies]
-telegraf_derive = { path = "./telegraf_derive" }
+tokio_telegraf_derive = { path = "./tokio_telegraf_derive" }
 tokio = { version = "1", features = ["full"] }
 url = "2.5"

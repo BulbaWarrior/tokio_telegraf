@@ -174,7 +174,7 @@ use url::Url;
 
 use protocol::*;
 pub use protocol::{FieldData, IntoFieldData};
-pub use telegraf_derive::*;
+pub use tokio_telegraf_derive::*;
 
 /// Common result type. Only meaningful response is
 /// an error.

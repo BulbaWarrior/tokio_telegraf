@@ -1,10 +1,10 @@
 on: [push, pull_request]
 
-name: Quickstart
+name: Rust pipeline
 
 jobs:
   check:
-    name: Check
+    name: Run cargo check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -23,7 +23,7 @@ jobs:
           command: check
 
   test:
-    name: Test Suite
+    name: Run test suite
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -40,9 +40,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --all
 
   lints:
-    name: Lints
+    name: Run lints and format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources

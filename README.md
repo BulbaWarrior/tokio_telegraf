@@ -1,19 +1,19 @@
-# tokio-telegraf
+# tokio_telegraf
 
 ## Under development
 
-[![tokio-telegraf crate](https://img.shields.io/crates/v/tokio-telegraf.svg)](https://crates.io/crates/tokio-telegraf)
-[![tokio-telegraf crate downloads](https://img.shields.io/crates/d/tokio-telegraf)](https://crates.io/crates/tokio-telegraf)
-[![tokio-telegraf documentation](https://docs.rs/tokio-telegraf/badge.svg)](https://docs.rs/tokio-telegraf)
+[![tokio_telegraf crate](https://img.shields.io/crates/v/tokio_telegraf.svg)](https://crates.io/crates/tokio_telegraf)
+[![tokio_telegraf crate downloads](https://img.shields.io/crates/d/tokio_telegraf)](https://crates.io/crates/tokio_telegraf)
+[![tokio_telegraf documentation](https://docs.rs/tokio_telegraf/badge.svg)](https://docs.rs/tokio_telegraf)
 
-Tokio-telegraf is a lightweight client library for general metrics writing using Telegraf. Telegraf is a micro-service provided
+`tokio_telegraf` is a lightweight client library for general metrics writing using Telegraf. Telegraf is a micro-service provided
 by InfluxData for making metrics reporting easy for distributed services - see their [docs](https://docs.influxdata.com/telegraf/v1.13/introduction/installation/) for more information.
 
 **This library is a fork of [maxmindlin/telegraf-rust](https://github.com/maxmindlin/telegraf-rust) to allow usage with asyncio, under the [Tokio](https://tokio.rs) ecosystem.**
 
 This library does not provide querying or other InfluxDB client-library features. This is meant to be lightweight and simple for services to report metrics.
 
-Tokio-telegraf supports all socket connection types, such as UDS (unix domain socket):
+`tokio_telegraf` supports all socket connection types, such as UDS (unix domain socket):
 
 - TCP (`tcp://`)
 - UDP (`udp://`)
@@ -31,7 +31,7 @@ Add it to your Cargo.toml:
 
 ```toml
 [dependencies]
-tokio-telegraf = "*"
+tokio_telegraf = "*"
 ```
 
 # How to use
