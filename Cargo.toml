@@ -17,6 +17,6 @@ categories = ["asynchronous", "database"]
 members = ["tests", "tokio_telegraf_derive"]
 
 [dependencies]
-tokio_telegraf_derive = { path = "./tokio_telegraf_derive" }
+tokio_telegraf_derive = "0.1"
 tokio = { version = "1", features = ["net", "io-util", "rt-multi-thread", "macros"] }
 url = "2.5"
