@@ -1,6 +1,6 @@
 # tokio-telegraf
 
-## Under development - not yet published to crates.io
+## Under development
 
 [![tokio-telegraf crate](https://img.shields.io/crates/v/tokio-telegraf.svg)](https://crates.io/crates/tokio-telegraf)
 [![tokio-telegraf crate downloads](https://img.shields.io/crates/d/tokio-telegraf)](https://crates.io/crates/tokio-telegraf)
