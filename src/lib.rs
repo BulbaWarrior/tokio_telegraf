@@ -159,8 +159,7 @@ pub mod macros;
 pub mod protocol;
 
 use std::{
-    fmt,
-    io::{self, Error},
+    fmt, io,
     net::{Shutdown, SocketAddr},
 };
 
@@ -212,13 +211,16 @@ pub trait Metric {
 }
 
 /// Error enum for library failures.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum TelegrafError {
     /// Error reading or writing I/O.
-    IoError(Error),
+    #[error("I/O error {0}")]
+    IoError(#[from] std::io::Error),
     /// Error with internal socket connection.
+    #[error("connection error {0}")]
     ConnectionError(String),
     /// Error when a bad protocol is created.
+    #[error("protocol error {0}")]
     BadProtocol(String),
 }
 
@@ -433,22 +435,6 @@ impl Connector {
                 url
             ))),
         }
-    }
-}
-
-impl fmt::Display for TelegrafError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            TelegrafError::IoError(ref e) => write!(f, "{}", e),
-            TelegrafError::ConnectionError(ref e) => write!(f, "{}", e),
-            TelegrafError::BadProtocol(ref e) => write!(f, "{}", e),
-        }
-    }
-}
-
-impl From<Error> for TelegrafError {
-    fn from(e: Error) -> Self {
-        Self::ConnectionError(e.to_string())
     }
 }
 

@@ -1,6 +1,6 @@
 [package]
 name = "tokio_telegraf"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
     "Matteo Bigoi <bigo@crisidev.org>",
     "Max Mindlin <maxmindlin@gmail.com>",
@@ -17,6 +17,7 @@ categories = ["asynchronous", "database"]
 members = ["tests", "tokio_telegraf_derive"]
 
 [dependencies]
+thiserror = "1.0"
 tokio_telegraf_derive = "0.1"
 tokio = { version = "1", features = ["net", "io-util", "rt-multi-thread", "macros"] }
 url = "2.5"
