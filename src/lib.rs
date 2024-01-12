@@ -242,11 +242,13 @@ pub struct Point {
 
 /// Connection client used to handle socket connection management
 /// and writing.
+#[derive(Debug)]
 pub struct Client {
     conn: Connector,
 }
 
 /// Different types of connections that the library supports.
+#[derive(Debug)]
 enum Connector {
     Tcp(TcpStream),
     Udp(UdpSocket),
