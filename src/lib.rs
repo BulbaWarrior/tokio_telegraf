@@ -204,7 +204,7 @@ pub type TelegrafResult = Result<(), TelegrafError>;
 ///     ts: u64,
 /// }
 /// ```
-pub trait Metric {
+pub trait Metric: Sync {
     /// Converts internal attributes
     /// to a Point format.
     fn to_point(&self) -> Point;
@@ -352,7 +352,7 @@ impl Client {
 
     /// Convenience wrapper around writing points for types
     /// that implement [crate::Metric].
-    pub async fn write<M: Metric>(&mut self, metric: &M) -> TelegrafResult {
+    pub async fn write(&mut self, metric: &dyn Metric) -> TelegrafResult {
         let pt = metric.to_point();
         self.write_point(&pt).await
     }
