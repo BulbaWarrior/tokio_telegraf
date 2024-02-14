@@ -350,9 +350,16 @@ impl Client {
         self.write_to_conn(lp.as_bytes()).await
     }
 
+    /// Convenience wrapper around writing points for dynamically
+    /// dispatched types that implement [crate::Metric]..
+    pub async fn write_dyn(&mut self, metric: &dyn Metric) -> TelegrafResult {
+        let pt = metric.to_point();
+        self.write_point(&pt).await
+    }
+
     /// Convenience wrapper around writing points for types
     /// that implement [crate::Metric].
-    pub async fn write(&mut self, metric: &dyn Metric) -> TelegrafResult {
+    pub async fn write<M: Metric>(&mut self, metric: &M) -> TelegrafResult {
         let pt = metric.to_point();
         self.write_point(&pt).await
     }
