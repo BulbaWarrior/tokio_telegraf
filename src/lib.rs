@@ -169,7 +169,7 @@ use tokio::{
     io::AsyncWriteExt,
     net::{TcpStream, UdpSocket},
 };
-use url::Url;
+use url::{Host, Url};
 
 use protocol::*;
 pub use protocol::{FieldData, IntoFieldData};
@@ -402,20 +402,41 @@ impl Connector {
     }
 
     async fn new(url: &str) -> Result<Self, TelegrafError> {
+        fn io_result<T>(opt: Option<T>, message: &str) -> io::Result<T> {
+            opt.ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, message))
+        }
         match Url::parse(url) {
             Ok(u) => {
                 let scheme = u.scheme();
                 match scheme {
                     "tcp" => {
-                        let addr = u.socket_addrs(|| None)?;
-                        let conn = TcpStream::connect(&*addr).await?;
+                        let conn = {
+                            let host = io_result(u.host(), "No host name in the URL")?;
+                            let port = io_result(u.port(), "No port number in the URL")?;
+                            match host {
+                                url::Host::Domain(domain) => {
+                                    TcpStream::connect((domain, port)).await?
+                                }
+                                url::Host::Ipv4(ipv4_addr) => {
+                                    TcpStream::connect((ipv4_addr, port)).await?
+                                }
+                                url::Host::Ipv6(ipv6_addr) => {
+                                    TcpStream::connect((ipv6_addr, port)).await?
+                                }
+                            }
+                        };
                         Ok(Connector::Tcp(conn))
                     }
                     "udp" => {
-                        let addr = u.socket_addrs(|| None)?;
+                        let host = io_result(u.host(), "No host name in the URL")?;
+                        let port = io_result(u.port(), "No port number in the URL")?;
                         let conn =
                             UdpSocket::bind(&[SocketAddr::from(([0, 0, 0, 0], 0))][..]).await?;
-                        conn.connect(&*addr).await?;
+                        match host {
+                            url::Host::Domain(domain) => conn.connect((domain, port)).await?,
+                            url::Host::Ipv4(ipv4_addr) => conn.connect((ipv4_addr, port)).await?,
+                            url::Host::Ipv6(ipv6_addr) => conn.connect((ipv6_addr, port)).await?,
+                        }
                         // conn.set_nonblocking(true)?;
                         Ok(Connector::Udp(conn))
                     }
