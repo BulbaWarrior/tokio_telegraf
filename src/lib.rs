@@ -169,7 +169,7 @@ use tokio::{
     io::AsyncWriteExt,
     net::{TcpStream, UdpSocket},
 };
-use url::{Host, Url};
+use url::Url;
 
 use protocol::*;
 pub use protocol::{FieldData, IntoFieldData};
